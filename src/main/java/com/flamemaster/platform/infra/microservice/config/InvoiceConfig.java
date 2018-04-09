@@ -1,12 +1,14 @@
 package com.flamemaster.platform.infra.microservice.config;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
-@Configuration
-public class NoviceConfig {
+@Getter
+@Component
+public class InvoiceConfig {
 
     @Value("${novice.check.url}")
-    private String CHECK_URL;
+    private String checkUrl;
 
 }
