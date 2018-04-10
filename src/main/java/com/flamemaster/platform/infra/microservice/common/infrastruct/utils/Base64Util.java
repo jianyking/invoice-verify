@@ -1,4 +1,4 @@
-package com.flamemaster.platform.infra.microservice.util;
+package com.flamemaster.platform.infra.microservice.common.infrastruct.utils;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;

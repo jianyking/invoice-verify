@@ -4,7 +4,7 @@ import com.flamemaster.platform.infra.microservice.base.Entity;
 import com.flamemaster.platform.infra.microservice.config.InvoiceConfig;
 import com.flamemaster.platform.infra.microservice.config.InvoiceConstants;
 import com.flamemaster.platform.infra.microservice.service.CaptchaService;
-import com.flamemaster.platform.infra.microservice.util.HttpUtil;
+import com.flamemaster.platform.infra.microservice.common.infrastruct.utils.HttpUtil;
 import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Service;
 

@@ -2,17 +2,14 @@ package com.flamemaster.platform.infra.microservice.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.flamemaster.platform.infra.microservice.base.Entity;
-import com.flamemaster.platform.infra.microservice.base.InvoiceData;
 import com.flamemaster.platform.infra.microservice.base.InvoiceRequest;
 import com.flamemaster.platform.infra.microservice.base.InvoiceResponse;
 import com.flamemaster.platform.infra.microservice.config.InvoiceConfig;
 import com.flamemaster.platform.infra.microservice.config.InvoiceConstants;
 import com.flamemaster.platform.infra.microservice.service.CaptchaService;
 import com.flamemaster.platform.infra.microservice.service.InvoiceService;
-import com.flamemaster.platform.infra.microservice.util.HttpUtil;
+import com.flamemaster.platform.infra.microservice.common.infrastruct.utils.HttpUtil;
 import lombok.extern.log4j.Log4j;
-import org.apache.http.client.HttpClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Base64Utils;
 
