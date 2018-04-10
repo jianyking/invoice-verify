@@ -15,6 +15,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,7 @@ public class HttpUtil {
     public static String postByForm(Map<String, Object> paramsMap, String url) throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(url);
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
+        List<NameValuePair> params = new ArrayList<>();
         for (String key : paramsMap.keySet()) {
             String value = (String)(paramsMap.get(key));
             params.add(new BasicNameValuePair(key, value));
@@ -61,14 +62,25 @@ public class HttpUtil {
     public static String get(String url) throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(url);
-        CloseableHttpResponse response1 = httpClient.execute(httpGet);
-
+        CloseableHttpResponse response = httpClient.execute(httpGet);
         try {
-            HttpEntity responseEntity = response1.getEntity();
+            HttpEntity responseEntity = response.getEntity();
             return EntityUtils.toString(responseEntity);
         } finally {
-            response1.close();
+            response.close();
         }
-
     }
+
+    public static InputStream getStream(String url) throws IOException {
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpGet httpGet = new HttpGet(url);
+        CloseableHttpResponse response = httpClient.execute(httpGet);
+        try {
+            HttpEntity responseEntity = response.getEntity();
+            return responseEntity.getContent();
+        } finally {
+            response.close();
+        }
+    }
+
 }

@@ -37,25 +37,17 @@ public class InvoiceServiceImpl implements InvoiceService {
         //TODO 参数检查
 
         String checkUrl = invoiceConfig.getCheckUrl();
-        Entity entity = captchaService.getCaptcha();
+        Entity entity = captchaService.identifyCaptcha();
         if (entity.getCode() == InvoiceConstants.SUCCESS_STATUS) {
-            String data = entity.getData();
-            log.info(data);
-            Entity identifyResult = captchaService
-                    .identifyCaptcha(Base64Utils.encodeToString(data.getBytes()));
-            if (identifyResult.getCode() == InvoiceConstants.SUCCESS_STATUS) {
-                request.setCheckCode(identifyResult.getData());
-                try {
-                    String requestJson = JSON.toJSONString(request);
-                    String responseStr = HttpUtil.postByForm(JSON.parseObject(requestJson), checkUrl);
-                    log.info("调用查询发表接口返回:" + responseStr);
-                    InvoiceResponse responseData = JSON.toJavaObject(JSON.parseObject(responseStr), InvoiceResponse.class);
-                    return responseData;
-                } catch (IOException e) {
-                    log.error("调用查询发票接口失败", e);
-                }
-            } else {
-                //TODO recall
+            request.setValidCode(entity.getData());
+            try {
+                String requestJson = JSON.toJSONString(request);
+                String responseStr = HttpUtil.postByJson(requestJson, checkUrl);
+                log.info("调用查询发表接口返回:" + responseStr);
+                InvoiceResponse responseData = JSON.toJavaObject(JSON.parseObject(responseStr), InvoiceResponse.class);
+                return responseData;
+            } catch (IOException e) {
+                log.error("调用查询发票接口失败", e);
             }
         } else {
             //TODO recall

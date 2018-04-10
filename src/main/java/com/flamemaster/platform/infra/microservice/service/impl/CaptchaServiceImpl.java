@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Random;
 
 @Log4j
 @Service
@@ -18,21 +20,22 @@ public class CaptchaServiceImpl implements CaptchaService {
     @Resource
     private InvoiceConfig invoiceConfig;
 
-    public Entity getCaptcha() {
-        String url = invoiceConfig.getGenCodeUrl();
-        String response;
+    private static Random random = new Random();
+
+    private InputStream getCaptcha() {
+        int tmp = Math.abs(random.nextInt() % 1000);
+        String url = invoiceConfig.getGenCodeUrl() + "?tmp=" + tmp;
         try {
-            response = HttpUtil.get(url);
+            return HttpUtil.getStream(url);
         } catch (IOException e) {
             log.error("获取验证码失败", e);
-            return new Entity(InvoiceConstants.FAIL_STATUS, "获取验证码失败", null);
+            return null;
         }
-        return new Entity(InvoiceConstants.SUCCESS_STATUS, "获取验证码成功", response);
     }
 
-    public Entity identifyCaptcha(String base64code) {
+    public Entity identifyCaptcha() {
         //TODO
-        return new Entity(InvoiceConstants.SUCCESS_STATUS, "识别成功", "AABB");
+        return new Entity(InvoiceConstants.SUCCESS_STATUS, "识别成功", "fgfq");
     }
 
 }
