@@ -4,9 +4,12 @@ import com.flamemaster.platform.infra.microservice.config.InvoiceConfig;
 import com.flamemaster.platform.infra.microservice.common.infrastruct.utils.FileUtils;
 import com.flamemaster.platform.infra.microservice.service.TesseractService;
 import lombok.extern.log4j.Log4j;
+import net.sourceforge.tess4j.Tesseract;
+import net.sourceforge.tess4j.TesseractException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Random;
 
@@ -32,5 +35,17 @@ public class TesseractServiceImpl implements TesseractService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public String doOCR(BufferedImage bufferedImage, String language) {
+        try {
+            Tesseract instance = new Tesseract();
+            instance.setLanguage(language);
+            instance.setDatapath("D:\\tessdata");
+            return instance.doOCR(bufferedImage);
+        } catch (TesseractException te) {
+            te.printStackTrace();
+            return "";
+        }
     }
 }

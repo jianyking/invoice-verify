@@ -57,7 +57,7 @@ public class CaptchaServiceImpl implements CaptchaService {
             bufferedImage = ImageUtils.cleanCaptcha(bufferedImage);
             String randomName = "" + System.currentTimeMillis() + Math.abs(random.nextInt() % 10000) + ".jpg";
             ImageUtils.saveImage(invoiceConfig.getImageTempPath() + randomName, bufferedImage, "jpg");
-            String captcha = tesseractService.doOCR(invoiceConfig.getImageTempPath() + randomName, "eng");
+            String captcha = tesseractService.doOCR(bufferedImage, "eng");
             StringBuilder sb = new StringBuilder();
             for(char c : captcha.toCharArray()) {
                 if((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'z')) {
@@ -65,6 +65,7 @@ public class CaptchaServiceImpl implements CaptchaService {
                 }
             }
             log.info("验证码是：" + sb.toString());
+            System.out.println(randomName + ":" + sb.toString());
             if(sb.length() != 4 || !verificationCaptch(sb.toString().toLowerCase())) {
                 return identifyCaptcha(recallCount - 1);
             }
