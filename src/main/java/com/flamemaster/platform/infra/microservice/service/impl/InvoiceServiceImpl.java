@@ -46,7 +46,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
 
         String checkUrl = invoiceConfig.getCheckUrl();
-        Entity entity = captchaService.identifyCaptcha();
+        Entity entity = captchaService.identifyCaptcha(10);
         if (entity.getCode() == InvoiceConstants.SUCCESS_STATUS) {
             request.setValidCode(entity.getData());
             String requestJson = JSON.toJSONString(request);
