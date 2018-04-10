@@ -10,4 +10,11 @@ public interface CaptchaService {
      */
     Entity getCaptcha();
 
+    /**
+     * 识别验证码
+     * @param base64code 图片的base64数据
+     * @return 识别结果
+     */
+    Entity identifyCaptcha(String base64code);
+
 }

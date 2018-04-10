@@ -11,4 +11,7 @@ public class InvoiceConfig {
     @Value("${novice.check.url}")
     private String checkUrl;
 
+    @Value("${novice.code.url}")
+    private String genCodeUrl;
+
 }
