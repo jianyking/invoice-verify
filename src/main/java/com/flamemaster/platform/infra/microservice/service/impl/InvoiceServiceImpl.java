@@ -34,7 +34,7 @@ public class InvoiceServiceImpl implements InvoiceService {
      * @param request 查询参数
      * @return 发票信息
      */
-    public InvoiceData queryInvoice(InvoiceRequest request) {
+    public InvoiceResponse queryInvoice(InvoiceRequest request) {
 
         //TODO 参数检查
 
@@ -50,7 +50,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                 try {
                     String responseStr = HttpUtil.postByJson(JSON.toJSONString(request), checkUrl);
                     log.info("调用查询发表接口返回:" + responseStr);
-                    InvoiceData responseData = JSON.toJavaObject(JSON.parseObject(responseStr), InvoiceData.class);
+                    InvoiceResponse responseData = JSON.toJavaObject(JSON.parseObject(responseStr), InvoiceResponse.class);
                     return responseData;
                 } catch (IOException e) {
                     log.error("调用查询发票接口失败", e);
