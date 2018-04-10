@@ -37,12 +37,13 @@ public class HttpUtil {
         }
     }
 
-    public static String postByForm(Map<String, String> paramsMap, String url) throws IOException {
+    public static String postByForm(Map<String, Object> paramsMap, String url) throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(url);
         List<NameValuePair> params = new ArrayList<NameValuePair>();
         for (String key : paramsMap.keySet()) {
-            params.add(new BasicNameValuePair(key, paramsMap.get(key)));
+            String value = (String)(paramsMap.get(key));
+            params.add(new BasicNameValuePair(key, value));
         }
         UrlEncodedFormEntity entity = new UrlEncodedFormEntity(params, Consts.UTF_8);
         HttpPost httppost = new HttpPost(url);

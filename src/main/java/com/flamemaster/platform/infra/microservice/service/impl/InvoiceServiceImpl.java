@@ -1,6 +1,7 @@
 package com.flamemaster.platform.infra.microservice.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.flamemaster.platform.infra.microservice.base.Entity;
 import com.flamemaster.platform.infra.microservice.base.InvoiceRequest;
 import com.flamemaster.platform.infra.microservice.base.InvoiceResponse;
@@ -45,7 +46,8 @@ public class InvoiceServiceImpl implements InvoiceService {
             if (identifyResult.getCode() == InvoiceConstants.SUCCESS_STATUS) {
                 request.setCheckCode(identifyResult.getData());
                 try {
-                    String responseStr = HttpUtil.postByJson(JSON.toJSONString(request), checkUrl);
+                    String requestJson = JSON.toJSONString(request);
+                    String responseStr = HttpUtil.postByForm(JSON.parseObject(requestJson), checkUrl);
                     log.info("调用查询发表接口返回:" + responseStr);
                     InvoiceResponse responseData = JSON.toJavaObject(JSON.parseObject(responseStr), InvoiceResponse.class);
                     return responseData;
