@@ -37,7 +37,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         //TODO 参数检查
 
         String checkUrl = invoiceConfig.getCheckUrl();
-        Entity entity = captchaService.identifyCaptcha();
+        Entity entity = captchaService.identifyCaptcha(10);
         if (entity.getCode() == InvoiceConstants.SUCCESS_STATUS) {
             request.setValidCode(entity.getData());
             try {

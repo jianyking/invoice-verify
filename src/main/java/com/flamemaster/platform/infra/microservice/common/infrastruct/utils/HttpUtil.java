@@ -47,8 +47,7 @@ public class HttpUtil {
             params.add(new BasicNameValuePair(key, value));
         }
         UrlEncodedFormEntity entity = new UrlEncodedFormEntity(params, Consts.UTF_8);
-        HttpPost httppost = new HttpPost(url);
-        httppost.setEntity(entity);
+        httpPost.setEntity(entity);
         CloseableHttpResponse response = httpClient.execute(httpPost);
 
         try {

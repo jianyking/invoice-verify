@@ -14,4 +14,12 @@ public class InvoiceConfig {
     @Value("${novice.code.url}")
     private String genCodeUrl;
 
+    @Value("${novice.captch.check.url}")
+    private String checkCaptchUrl;
+
+    @Value("${novice.tesseract.path}")
+    private String tesseractPath;
+
+    @Value("${novice.image.path}")
+    private String imageTempPath;
 }
