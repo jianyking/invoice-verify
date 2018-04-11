@@ -1,9 +1,8 @@
 package com.flamemaster.platform.infra.microservice.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.flamemaster.platform.infra.microservice.base.Entity;
-import com.flamemaster.platform.infra.microservice.base.InvoiceData;
+import com.flamemaster.platform.infra.microservice.base.InnerInvoiceRequest;
 import com.flamemaster.platform.infra.microservice.base.InvoiceRequest;
 import com.flamemaster.platform.infra.microservice.base.InvoiceResponse;
 import com.flamemaster.platform.infra.microservice.config.InvoiceConfig;
@@ -13,7 +12,6 @@ import com.flamemaster.platform.infra.microservice.service.InvoiceService;
 import com.flamemaster.platform.infra.microservice.common.infrastruct.utils.HttpUtil;
 import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Base64Utils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -49,13 +47,20 @@ public class InvoiceServiceImpl implements InvoiceService {
             return new InvoiceResponse(InvoiceConstants.PARAM_NOT_VALID, "参数不符合规范", null, null);
         }
 
-        request.setInvoiceType(InvoiceConstants.INVOICE_TYPE);
-        request.setCheckCode(InvoiceConstants.DEFAULT_CHECK_CODE);
+        InnerInvoiceRequest innerRequest = new InnerInvoiceRequest(
+                InvoiceConstants.INVOICE_TYPE,
+                request.getInvoiceCode(),
+                request.getInvoiceNo(),
+                request.getInvoiceDate(),
+                request.getInvoiceAmount(),
+                InvoiceConstants.DEFAULT_CHECK_CODE,
+                null
+        );
 
-        return doQueryInvoice(request, 0);
+        return doQueryInvoice(innerRequest, 0);
     }
 
-    private InvoiceResponse doQueryInvoice(InvoiceRequest request, int cycleLevel) {
+    private InvoiceResponse doQueryInvoice(InnerInvoiceRequest request, int cycleLevel) {
 
         String checkUrl = invoiceConfig.getCheckUrl();
         Entity entity = captchaService.identifyCaptcha(20);

@@ -1,5 +1,6 @@
 package com.flamemaster.platform.infra.microservice.service;
 
+import com.flamemaster.platform.infra.microservice.base.InnerInvoiceRequest;
 import com.flamemaster.platform.infra.microservice.base.InvoiceRequest;
 import com.flamemaster.platform.infra.microservice.base.InvoiceResponse;
 
