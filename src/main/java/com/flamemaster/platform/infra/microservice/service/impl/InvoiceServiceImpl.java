@@ -46,7 +46,8 @@ public class InvoiceServiceImpl implements InvoiceService {
         if (StringUtils.isEmpty(request.getInvoiceCode())
                 || StringUtils.isEmpty(request.getInvoiceNo())
                 || StringUtils.isEmpty(request.getInvoiceDate())
-                || StringUtils.isEmpty(request.getInvoiceAmount())) {
+                || StringUtils.isEmpty(request.getInvoiceAmount())
+                || StringUtils.isEmpty(request.getCheckCode())) {
             return new InvoiceResponse(InvoiceConstants.PARAM_NOT_VALID, "参数不符合规范", null, null);
         }
 
