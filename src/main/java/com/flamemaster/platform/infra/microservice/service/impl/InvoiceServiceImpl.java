@@ -31,6 +31,10 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     private static final String CAPTCHA_ERROR_MSG = "验证码错误！";
 
+    private static final String CAPTCHA_EMPTY_MSG = "验证码不能为空！";
+
+    private static final int maxCycle = 10;
+
     /**
      * 查询发票信息
      * @param request 查询参数
@@ -45,6 +49,14 @@ public class InvoiceServiceImpl implements InvoiceService {
             return new InvoiceResponse(InvoiceConstants.PARAM_NOT_VALID, "参数不符合规范", null, null);
         }
 
+        request.setInvoiceType(InvoiceConstants.INVOICE_TYPE);
+        request.setCheckCode(InvoiceConstants.DEFAULT_CHECK_CODE);
+
+        return doQueryInvoice(request, 0);
+    }
+
+    private InvoiceResponse doQueryInvoice(InvoiceRequest request, int cycleLevel) {
+
         String checkUrl = invoiceConfig.getCheckUrl();
         Entity entity = captchaService.identifyCaptcha(20);
         if (entity.getCode() == InvoiceConstants.SUCCESS_STATUS) {
@@ -53,36 +65,42 @@ public class InvoiceServiceImpl implements InvoiceService {
 
             log.info("调用查询接口 入参: " + requestJson);
             long beforeTime = System.currentTimeMillis();
-            Entity resEntity = HttpUtil.postByJson(requestJson, checkUrl);
+            Entity resEntity;
+            try {
+                resEntity = HttpUtil.postByJson(requestJson, checkUrl);
+            } catch (IOException e) {
+                log.error("调用检查发票服务失败", e);
+                //TODO recall
+                return new InvoiceResponse(InvoiceConstants.NET_WORK_ERROR, "调用检查发票服务失败", null, null);
+            }
             long callTime = System.currentTimeMillis() - beforeTime;
             log.info("调用接口用时: " + callTime + "ms");
 
-            String responseStr = "";
-            if (resEntity.getCode() == InvoiceConstants.SUCCESS_STATUS) {
-                responseStr = resEntity.getData();
-            } else {
-                //网络问题，重调查询接口
-            }
-
+            String responseStr = resEntity.getData();
             log.info("调用查询发表接口返回:" + responseStr);
             InvoiceResponse response = JSON.toJavaObject(JSON.parseObject(responseStr), InvoiceResponse.class);
 
             //调用失败处理
             if (response.getCode() == InvoiceConstants.FAIL_STATUS) {
-                if (response.getMsg().equals(CAPTCHA_ERROR_MSG)) {
-                    //验证码错误 需要重新生成验证码
+                if (response.getMsg().equals(CAPTCHA_ERROR_MSG)
+                        || response.getMsg().equals(CAPTCHA_EMPTY_MSG)) {
+                    //验证码错误或为空，需要重新生成验证码
+                    if (cycleLevel < maxCycle) {
+                        return doQueryInvoice(request, cycleLevel + 1);
+                    }
                 } else {
-                    //判断错误类型，并返回
-
+                    //其余失败类型返回
+                    response.setMsg("未查到发票信息");
+                    return response;
                 }
             }
-
+            //调用成功
             return response;
-
         } else {
-            return new InvoiceResponse(InvoiceConstants.NET_WORK_ERROR, "参数不符合规范", null, null);
+            //验证码服务调用失败
+            log.warn("无法获取有效的验证码");
+            return new InvoiceResponse(InvoiceConstants.FAIL_STATUS, "验证码服务调用失败", null, null);
         }
-
     }
 
 }

@@ -18,4 +18,6 @@ public class InvoiceConstants {
 
     /** 默认的查询发票接口所需查询类型 **/
     public final static String INVOICE_TYPE = "01";
+
+    public final static String DEFAULT_CHECK_CODE = "";
 }
