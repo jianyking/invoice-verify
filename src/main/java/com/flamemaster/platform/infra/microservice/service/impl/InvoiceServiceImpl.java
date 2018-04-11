@@ -31,7 +31,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     private static final String CAPTCHA_EMPTY_MSG = "验证码不能为空！";
 
-    private static final int maxCycle = 10;
+    private static final int maxCycle = 15;
 
     /**
      * 查询发票信息
@@ -76,7 +76,7 @@ public class InvoiceServiceImpl implements InvoiceService {
             } catch (IOException e) {
                 log.error("调用检查发票服务失败", e);
                 //TODO recall
-                return new InvoiceResponse(InvoiceConstants.NET_WORK_ERROR, "调用检查发票服务失败", null, null);
+                return new InvoiceResponse(InvoiceConstants.NET_WORK_ERROR, "调用检查发票服务失败，请重试", null, null);
             }
             long callTime = System.currentTimeMillis() - beforeTime;
             log.info("调用接口用时: " + callTime + "ms");
@@ -96,6 +96,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                 } else {
                     //其余失败类型返回
                     response.setMsg("未查到发票信息");
+                    response.setCode(InvoiceConstants.INVOICE_ERROR);
                     return response;
                 }
             }
@@ -104,7 +105,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         } else {
             //验证码服务调用失败
             log.warn("无法获取有效的验证码");
-            return new InvoiceResponse(InvoiceConstants.FAIL_STATUS, "验证码服务调用失败", null, null);
+            return new InvoiceResponse(InvoiceConstants.CAPTCHA_CODE_ERROR, "验证码服务调用失败", null, null);
         }
     }
 

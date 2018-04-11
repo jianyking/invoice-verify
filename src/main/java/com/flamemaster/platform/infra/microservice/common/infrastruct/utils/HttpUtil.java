@@ -7,6 +7,7 @@ import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -27,9 +28,19 @@ import java.util.Map;
 @Log4j
 public class HttpUtil {
 
+    private static final int MAX_CONNECTION_TIME = 5000;
+
+    private static RequestConfig getDefaultConfig() {
+        return RequestConfig.custom()
+                .setConnectTimeout(MAX_CONNECTION_TIME)
+                .setConnectionRequestTimeout(MAX_CONNECTION_TIME)
+                .setSocketTimeout(MAX_CONNECTION_TIME).build();
+    }
+
     public static Entity postByJson(String value, String url) throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(url);
+        httpPost.setConfig(getDefaultConfig());
         StringEntity entity = new StringEntity(value, ContentType.create("application/json", Consts.UTF_8));
         httpPost.setEntity(entity);
         CloseableHttpResponse response = httpClient.execute(httpPost);
