@@ -33,6 +33,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     private static final int maxCycle = 15;
 
+    private static final String[] SPECIAL_CODE = new String[]
+            {"144031539110", "131001570151", "133011501118", "111001571071"};
+
     /**
      * 查询发票信息
      * @param request 查询参数
@@ -48,12 +51,12 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
 
         InnerInvoiceRequest innerRequest = new InnerInvoiceRequest(
-                InvoiceConstants.INVOICE_TYPE,
+                getInvoiceType(request.getInvoiceCode()),
                 request.getInvoiceCode(),
                 request.getInvoiceNo(),
                 request.getInvoiceDate(),
                 request.getInvoiceAmount(),
-                InvoiceConstants.DEFAULT_CHECK_CODE,
+                request.getCheckCode(),
                 null
         );
 
@@ -109,4 +112,53 @@ public class InvoiceServiceImpl implements InvoiceService {
         }
     }
 
+    /**
+     * 获取发票类型
+     * @param invoiceCode 发票
+     * @return
+     */
+    private String getInvoiceType(String invoiceCode) {
+
+        assert (invoiceCode != null && invoiceCode.length() >= 10);
+        String b = invoiceCode.substring(7, 8);
+        String c = "99";
+
+        if(invoiceCode.length() == 12){
+            for (String special : SPECIAL_CODE) {
+                if (invoiceCode.equals(special)) {
+                    return "10";
+                }
+            }
+            char c0 = invoiceCode.charAt(0);
+            String d = invoiceCode.substring(10, 12);
+
+            if (c0 == '0') {
+                if ("11".equals(d)) {
+                    return "10";//增值税普通发票（电子）
+                }
+                if ("06".equals(d) || "07".equals(d)) {  //判断是否为卷式发票  第1位为0且第11-12位为06或07
+                    return "11";//增值税普通发票（卷式）
+                }
+                if("04".equals(d) || "05".equals(d)){  //第11-12位代表票种和联次，其中04代表二联增值税普通发票（折叠票）、05代表五联增值税普通发票（折叠票）
+                    return "04";//2018年1月1日执行的增值税普通发票
+                }
+            } else if("2".equals(b)){ //如果第8位是2，则是机动车发票
+                return "03";//机动车发票
+            }
+        }else if(invoiceCode.length() == 10) {
+            switch (b) {
+                case "1":
+                case "5":
+                    return "01";
+                case "3":
+                case "6":
+                    return "04";
+                case "2":
+                case "7":
+                    return "02";
+                default: return "01";
+            }
+        }
+        return c;
+    }
 }

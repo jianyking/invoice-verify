@@ -1,5 +1,6 @@
 package com.flamemaster.platform.infra.microservice.base;
 
+
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -15,8 +16,10 @@ public class InvoiceRequest {
     @ApiModelProperty(value = "开票日期")
     private String invoiceDate;
 
-    @ApiModelProperty(value = "发票金额")
+    @ApiModelProperty(value = "发票金额（不含税）")
     private String invoiceAmount;
 
+    @ApiModelProperty(value = "校验码后六位")
+    private String checkCode;
 }
 
