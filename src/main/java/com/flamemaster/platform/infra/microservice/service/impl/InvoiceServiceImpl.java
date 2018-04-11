@@ -58,7 +58,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     private InvoiceResponse doQueryInvoice(InvoiceRequest request, int cycleLevel) {
 
         String checkUrl = invoiceConfig.getCheckUrl();
-        Entity entity = captchaService.identifyCaptcha(10);
+        Entity entity = captchaService.identifyCaptcha(20);
         if (entity.getCode() == InvoiceConstants.SUCCESS_STATUS) {
             request.setValidCode(entity.getData());
             String requestJson = JSON.toJSONString(request);
