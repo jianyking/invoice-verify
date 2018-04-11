@@ -41,7 +41,7 @@ public class TesseractServiceImpl implements TesseractService {
         try {
             Tesseract instance = new Tesseract();
             instance.setLanguage(language);
-            instance.setDatapath("D:\\tessdata");
+            instance.setDatapath(invoiceConfig.getTesseractPath() + "tessdata");
             return instance.doOCR(bufferedImage);
         } catch (TesseractException te) {
             te.printStackTrace();

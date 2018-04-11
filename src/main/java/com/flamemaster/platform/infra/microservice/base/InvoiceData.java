@@ -1,12 +1,16 @@
 package com.flamemaster.platform.infra.microservice.base;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
+@ApiModel
 public class InvoiceData {
 
+    @ApiModelProperty(value = "响应码")
     private String resultCode;
 
     private String resultTip;
