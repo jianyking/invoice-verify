@@ -33,4 +33,12 @@ public class FileUtils {
         }
         return null;
     }
+
+    public static boolean deleteFile(String fileName) {
+        File file = new File(fileName);
+        if(!file.exists()) {
+            return true;
+        }
+        return file.delete();
+    }
 }

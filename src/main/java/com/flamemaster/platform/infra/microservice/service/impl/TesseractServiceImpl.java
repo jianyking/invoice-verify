@@ -4,8 +4,6 @@ import com.flamemaster.platform.infra.microservice.config.InvoiceConfig;
 import com.flamemaster.platform.infra.microservice.common.infrastruct.utils.FileUtils;
 import com.flamemaster.platform.infra.microservice.service.TesseractService;
 import lombok.extern.log4j.Log4j;
-import net.sourceforge.tess4j.Tesseract;
-import net.sourceforge.tess4j.TesseractException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -20,11 +18,9 @@ public class TesseractServiceImpl implements TesseractService {
     @Resource
     private InvoiceConfig invoiceConfig;
 
-    private static Random random = new Random();
-
     public String doOCR(String imageFullName, String language) {
         try {
-            String[] cmd = new String[]{invoiceConfig.getTesseractPath() + "tesseract", imageFullName, imageFullName, "-l", language};
+            String[] cmd = new String[]{invoiceConfig.getTesseractPath() + "tesseract", imageFullName, imageFullName, "-l", language, "--psm", "7"};
             Process pb = Runtime.getRuntime().exec(cmd);
             int execRes = pb.waitFor();
             if (execRes != 0) {
@@ -32,20 +28,8 @@ public class TesseractServiceImpl implements TesseractService {
             }
             return FileUtils.readFileByChars(imageFullName + ".txt", "UTF-8");
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public String doOCR(BufferedImage bufferedImage, String language) {
-        try {
-            Tesseract instance = new Tesseract();
-            instance.setLanguage(language);
-            instance.setDatapath(invoiceConfig.getTesseractPath() + "tessdata");
-            return instance.doOCR(bufferedImage);
-        } catch (TesseractException te) {
-            te.printStackTrace();
-            return "";
+            log.error("do ocr file operator error !, fileName: " + imageFullName, e);
+            return null;
         }
     }
 }

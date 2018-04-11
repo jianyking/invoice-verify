@@ -1,8 +1,10 @@
 package com.flamemaster.platform.infra.microservice.service.impl;
 
 import com.flamemaster.platform.infra.microservice.base.Entity;
+import com.flamemaster.platform.infra.microservice.common.infrastruct.utils.FileUtils;
 import com.flamemaster.platform.infra.microservice.common.infrastruct.utils.HttpUtil;
 import com.flamemaster.platform.infra.microservice.common.infrastruct.utils.ImageUtils;
+import com.flamemaster.platform.infra.microservice.common.infrastruct.utils.StringUtils;
 import com.flamemaster.platform.infra.microservice.config.InvoiceConfig;
 import com.flamemaster.platform.infra.microservice.config.InvoiceConstants;
 import com.flamemaster.platform.infra.microservice.service.CaptchaService;
@@ -13,8 +15,10 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,13 +36,21 @@ public class CaptchaServiceImpl implements CaptchaService {
 
     private static Random random = new Random();
 
+    private static String captchaCahce = "1-1";
+
+    private BufferedImage loadCaptcha() throws IOException {
+        int tmp = Math.abs(random.nextInt() % 1000);
+        String url = invoiceConfig.getGenCodeUrl() + "?tmp=" + tmp;
+        return ImageUtils.loadImage(new URL(url));
+    }
+
     private boolean verificationCaptch(String captch) {
         String url = invoiceConfig.getCheckCaptchUrl();
         try {
             Map<String, Object> reqParam = new HashMap<>();
             reqParam.put("yzm", captch);
             String checkCaptchRes = HttpUtil.postByForm(reqParam, url);
-            log.info("验证码验证结果：" + checkCaptchRes);
+            log.info("验证码验证结果：" + ("success".equals(checkCaptchRes) ? "成功" : "失败"));
             return "success".equals(checkCaptchRes);
         } catch (IOException e) {
             log.error("验证验证码正确性失败", e);
@@ -47,32 +59,62 @@ public class CaptchaServiceImpl implements CaptchaService {
     }
 
     public Entity identifyCaptcha(int recallCount) {
-        if(recallCount <= 0) {
-            return new Entity(InvoiceConstants.FAIL_STATUS, "识别失败, 超过允许的最多错误次数", null);
-        }
         try {
-            int tmp = Math.abs(random.nextInt() % 1000);
-            String url = invoiceConfig.getGenCodeUrl() + "?tmp=" + tmp;
-            BufferedImage bufferedImage = ImageUtils.loadImage(new URL(url));
-            bufferedImage = ImageUtils.cleanCaptcha(bufferedImage);
-            String randomName = "" + System.currentTimeMillis() + Math.abs(random.nextInt() % 10000) + ".jpg";
-            String imageFullName = invoiceConfig.getImageTempPath() + randomName;
-            ImageUtils.saveImage(imageFullName, bufferedImage, "jpg");
-            String captcha = tesseractService.doOCR(imageFullName, "eng");
-            StringBuilder sb = new StringBuilder();
-            for(char c : captcha.toCharArray()) {
-                if((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
-                    sb.append(c);
-                }
+            if(checkCaptchaCache()) {
+                return new Entity(InvoiceConstants.SUCCESS_STATUS, "识别成功", captchaCahce.split("-")[0]);
             }
-            log.info("验证码是：" + sb.toString());
-            if(sb.length() != 4 || !verificationCaptch(sb.toString().toLowerCase())) {
-                return identifyCaptcha(recallCount - 1);
-            }
-            return new Entity(InvoiceConstants.SUCCESS_STATUS, "识别成功", sb.toString().toLowerCase());
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            return new Entity(InvoiceConstants.FAIL_STATUS, "识别失败", null);
+            String captch = reTryIdentifyCaptcha(recallCount);
+            captchaCahce = captch + "-" + System.currentTimeMillis();
+            return new Entity(InvoiceConstants.SUCCESS_STATUS, "识别成功", captch);
+        } catch (RuntimeException re) {
+            log.error(re.getMessage());
+            return new Entity(InvoiceConstants.FAIL_STATUS, "识别验证码超过最大的可重试次数", null);
         }
+    }
+
+    private String reTryIdentifyCaptcha(int reTryTimes) {
+        for (int i = 0; i < reTryTimes; i++) {
+            try {
+                String captcha = doOnceIdentifyCaptcha();
+                if(checkCaptcha(captcha)) {
+                    return captcha;
+                } else {
+                    log.error("验证码识别失败");
+                }
+            } catch (Exception e) {
+                log.error("验证码识别报错", e);
+            }
+        }
+        throw new RuntimeException("识别验证码超过最大的可重试次数");
+    }
+
+    private String doOnceIdentifyCaptcha() throws IOException {
+        BufferedImage bi = loadCaptcha();
+        if (bi == null) {
+            return null;
+        }
+        bi = ImageUtils.cleanCaptcha(bi);
+        String tempImageName = invoiceConfig.getImageTempPath() + System.currentTimeMillis() + random.nextInt(10000) + ".jpg";
+        log.info("生成的临时验证码图片名称: " + tempImageName);
+        ImageUtils.saveImage(tempImageName, bi, InvoiceConstants.TEMP_IMAGE_FORMAT);
+        String captcha = tesseractService.doOCR(tempImageName, InvoiceConstants.TESSERACT_OCR_LANGUAGE);
+        if (InvoiceConstants.RUN_MODE_NORMAL.equals(invoiceConfig.getMode())) {
+            if (!FileUtils.deleteFile(tempImageName) || !FileUtils.deleteFile(tempImageName + ".txt")) {
+                log.error("删除临时文件失败!");
+            }
+        }
+        captcha = StringUtils.cleanToNumberOrLetterString(captcha);
+        log.info("获取到的验证码是：" + captcha);
+        return captcha;
+    }
+
+    private boolean checkCaptcha(String captcha) {
+        return captcha != null && captcha.length() == 4 && verificationCaptch(captcha);
+    }
+
+    private boolean checkCaptchaCache() {
+        String[] cache = captchaCahce.split("-");
+        long time = Long.parseLong(cache[1]);
+        return (System.currentTimeMillis() - time < InvoiceConstants.CAPTCHA_CACHE_FAILURE_TIME) && checkCaptcha(cache[0]);
     }
 }

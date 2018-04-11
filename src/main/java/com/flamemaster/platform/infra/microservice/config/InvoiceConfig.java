@@ -22,4 +22,7 @@ public class InvoiceConfig {
 
     @Value("${novice.image.path}")
     private String imageTempPath;
+
+    @Value("${novice.mode}")
+    private String mode;
 }

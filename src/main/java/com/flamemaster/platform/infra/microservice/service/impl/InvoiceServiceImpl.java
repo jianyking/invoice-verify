@@ -1,10 +1,7 @@
 package com.flamemaster.platform.infra.microservice.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.flamemaster.platform.infra.microservice.base.Entity;
-import com.flamemaster.platform.infra.microservice.base.InnerInvoiceRequest;
-import com.flamemaster.platform.infra.microservice.base.InvoiceRequest;
-import com.flamemaster.platform.infra.microservice.base.InvoiceResponse;
+import com.flamemaster.platform.infra.microservice.base.*;
 import com.flamemaster.platform.infra.microservice.config.InvoiceConfig;
 import com.flamemaster.platform.infra.microservice.config.InvoiceConstants;
 import com.flamemaster.platform.infra.microservice.service.CaptchaService;
@@ -49,6 +46,22 @@ public class InvoiceServiceImpl implements InvoiceService {
             return new InvoiceResponse(InvoiceConstants.PARAM_NOT_VALID, "参数不符合规范", null, null);
         }
 
+        InvoiceData invoiceData = InvoiceCache.getInvoice(request);
+        if(invoiceData != null) {
+            log.info("命中发票缓存！");
+            InvoiceResponse invoiceResponse = new InvoiceResponse();
+            if(InvoiceCache.checkInvoice(request)) {
+                invoiceResponse.setCode(0);
+                invoiceResponse.setMsg("success");
+                invoiceResponse.setData(invoiceData);
+            } else {
+                invoiceResponse.setCode(InvoiceConstants.INVOICE_ERROR);
+                invoiceResponse.setMsg("未查到发票信息");
+            }
+            log.info("查询发票接口返回: " + JSON.toJSONString(invoiceResponse));
+            return invoiceResponse;
+        }
+
         InnerInvoiceRequest innerRequest = new InnerInvoiceRequest(
                 getInvoiceType(request.getInvoiceCode()),
                 request.getInvoiceCode(),
@@ -58,8 +71,9 @@ public class InvoiceServiceImpl implements InvoiceService {
                 request.getCheckCode(),
                 null
         );
-
-        return doQueryInvoice(innerRequest, 0);
+        InvoiceResponse invoiceResponse = doQueryInvoice(innerRequest, 0);
+        InvoiceCache.storageInvoice(invoiceResponse.getData());
+        return invoiceResponse;
     }
 
     private InvoiceResponse doQueryInvoice(InnerInvoiceRequest request, int cycleLevel) {
