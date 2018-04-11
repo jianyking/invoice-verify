@@ -27,29 +27,22 @@ import java.util.Map;
 @Log4j
 public class HttpUtil {
 
-    public static Entity postByJson(String value, String url) {
+    public static Entity postByJson(String value, String url) throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(url);
         StringEntity entity = new StringEntity(value, ContentType.create("application/json", Consts.UTF_8));
         httpPost.setEntity(entity);
-        CloseableHttpResponse response = null;
+        CloseableHttpResponse response = httpClient.execute(httpPost);
         try {
-            response = httpClient.execute(httpPost);
             int status = response.getStatusLine().getStatusCode();
-            if (status == HttpStatus.SC_OK) {
+            if (status < 300) {
                 HttpEntity responseEntity = response.getEntity();
                 return new Entity(InvoiceConstants.SUCCESS_STATUS, "调用成功",
                         EntityUtils.toString(responseEntity));
             }
-        } catch (IOException e) {
-            log.error("服务调用失败", e);
         } finally {
-            try {
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                log.error("连接关闭失败", e);
+            if (response != null) {
+                response.close();
             }
         }
         return new Entity(InvoiceConstants.NET_WORK_ERROR, "服务调用失败", null);
