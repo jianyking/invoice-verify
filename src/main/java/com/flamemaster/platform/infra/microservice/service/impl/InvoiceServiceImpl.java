@@ -35,6 +35,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     /**
      * 查询发票信息
+     *
      * @param request 查询参数
      * @return 发票信息
      */
@@ -42,15 +43,16 @@ public class InvoiceServiceImpl implements InvoiceService {
 
         if (StringUtils.isEmpty(request.getInvoiceCode())
                 || StringUtils.isEmpty(request.getInvoiceNo())
-                || StringUtils.isEmpty(request.getInvoiceDate())) {
+                || StringUtils.isEmpty(request.getInvoiceDate())
+                || request.getInvoiceCode().length() < 8) {
             return new InvoiceResponse(InvoiceConstants.PARAM_NOT_VALID, "参数不符合规范", null, null);
         }
 
         InvoiceData invoiceData = InvoiceCache.getInvoice(request);
-        if(invoiceData != null) {
+        if (invoiceData != null) {
             log.info("命中发票缓存！");
             InvoiceResponse invoiceResponse = new InvoiceResponse();
-            if(InvoiceCache.checkInvoice(request)) {
+            if (InvoiceCache.checkInvoice(request)) {
                 invoiceResponse.setCode(0);
                 invoiceResponse.setMsg("success");
                 invoiceResponse.setData(invoiceData);
@@ -127,6 +129,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     /**
      * 获取发票类型
+     *
      * @param invoiceCode 发票
      * @return
      */
@@ -136,7 +139,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         String b = invoiceCode.substring(7, 8);
         String c = "99";
 
-        if(invoiceCode.length() == 12){
+        if (invoiceCode.length() == 12) {
             for (String special : SPECIAL_CODE) {
                 if (invoiceCode.equals(special)) {
                     return "10";
@@ -152,13 +155,13 @@ public class InvoiceServiceImpl implements InvoiceService {
                 if ("06".equals(d) || "07".equals(d)) {  //判断是否为卷式发票  第1位为0且第11-12位为06或07
                     return "11";//增值税普通发票（卷式）
                 }
-                if("04".equals(d) || "05".equals(d)){  //第11-12位代表票种和联次，其中04代表二联增值税普通发票（折叠票）、05代表五联增值税普通发票（折叠票）
+                if ("04".equals(d) || "05".equals(d)) {  //第11-12位代表票种和联次，其中04代表二联增值税普通发票（折叠票）、05代表五联增值税普通发票（折叠票）
                     return "04";//2018年1月1日执行的增值税普通发票
                 }
-            } else if("2".equals(b)){ //如果第8位是2，则是机动车发票
+            } else if ("2".equals(b)) { //如果第8位是2，则是机动车发票
                 return "03";//机动车发票
             }
-        }else if(invoiceCode.length() == 10) {
+        } else if (invoiceCode.length() == 10) {
             switch (b) {
                 case "1":
                 case "5":
@@ -169,7 +172,8 @@ public class InvoiceServiceImpl implements InvoiceService {
                 case "2":
                 case "7":
                     return "02";
-                default: return "01";
+                default:
+                    return "01";
             }
         }
         return c;

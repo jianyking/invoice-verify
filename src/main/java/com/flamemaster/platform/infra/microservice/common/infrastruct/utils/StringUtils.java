@@ -1,6 +1,6 @@
 package com.flamemaster.platform.infra.microservice.common.infrastruct.utils;
 
-public class StringUtils {
+public class StringUtils extends org.springframework.util.StringUtils{
 
     public static String cleanToNumberOrLetterString(String src) {
         if(src == null) {

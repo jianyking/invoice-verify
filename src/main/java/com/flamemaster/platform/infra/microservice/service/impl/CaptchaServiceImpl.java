@@ -9,6 +9,7 @@ import com.flamemaster.platform.infra.microservice.config.InvoiceConfig;
 import com.flamemaster.platform.infra.microservice.config.InvoiceConstants;
 import com.flamemaster.platform.infra.microservice.service.CaptchaService;
 import com.flamemaster.platform.infra.microservice.service.TesseractService;
+import com.flamemaster.platform.infra.microservice.wrapper.CaptchaWrapper;
 import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Service;
 
@@ -93,10 +94,11 @@ public class CaptchaServiceImpl implements CaptchaService {
         if (bi == null) {
             return null;
         }
-        bi = ImageUtils.cleanCaptcha(bi);
         String tempImageName = invoiceConfig.getImageTempPath() + System.currentTimeMillis() + random.nextInt(10000) + ".jpg";
+        CaptchaWrapper cw = new CaptchaWrapper(bi);
+        cw.adjustContrast(1.3).binarization(0).cleanByEightBitDomain(5, 5, 0)
+                .cleanIsland(7).cleanSide(3, 0).save(tempImageName);
         log.info("生成的临时验证码图片名称: " + tempImageName);
-        ImageUtils.saveImage(tempImageName, bi, InvoiceConstants.TEMP_IMAGE_FORMAT);
         String captcha = tesseractService.doOCR(tempImageName, InvoiceConstants.TESSERACT_OCR_LANGUAGE);
         if (InvoiceConstants.RUN_MODE_NORMAL.equals(invoiceConfig.getMode())) {
             if (!FileUtils.deleteFile(tempImageName) || !FileUtils.deleteFile(tempImageName + ".txt")) {
